@@ -11,12 +11,13 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Concert(object):
-    def __init__(self, session, price, date, real_name, nick_name, ticket_num, damai_url, target_url, browser):
+    def __init__(self, session, price, date, real_name, nick_name, ticket_num, damai_url, target_url, browser,start_time):
         self.session = session  # 场次序号优先级
         self.price = price  # 票价序号优先级
         self.date = date # 日期选择
         self.real_name = real_name  # 实名者序号
         self.status = 0  # 状态标记
+        self.pre_start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S") #设置的开始时间
         self.time_start = 0  # 开始时间
         self.time_end = 0  # 结束时间
         self.num = 0  # 尝试次数
@@ -399,22 +400,26 @@ class Concert(object):
 
 
 if __name__ == '__main__':
-    # import datetime
-    # startTime = datetime.datetime(2019, 9, 25, 9, 17, 7)  #定时功能：2019-9-25 09:17:07秒开抢
-    # print('抢票程序还未开始...')
-    # while datetime.datetime.now() < startTime:
-    #     sleep(1)
-    # print('开始进入抢票 %s' % startTime)
-    # print('正在执行...')
+
+    import datetime #定时功能
+    
     try:
         with open('./config.json', 'r', encoding='utf-8') as f:
                     config = loads(f.read())
-                # params: 场次优先级，票价优先级，日期， 实名者序号, 用户昵称， 购买票数， 官网网址， 目标网址， 浏览器
+                # params: 场次优先级，票价优先级，日期， 实名者序号, 用户昵称， 购买票数， 官网网址， 目标网址， 浏览器，开始时间
         con = Concert(config['sess'], config['price'], config['date'], config['real_name'], config['nick_name'], config['ticket_num'],
-                      config['damai_url'], config['target_url'], config['browser'])
+                      config['damai_url'], config['target_url'], config['browser'], config['start_time'])
     except Exception as e:
         print(e)
         raise Exception("***错误：初始化失败，请检查配置文件***")
+
+    print('抢票程序还未开始...') 
+    while datetime.datetime.now() < con.pre_start_time:
+        sec =(con.pre_start_time - datetime.datetime.now()).seconds
+        print('倒计时%i秒' % sec)
+        sleep(1)
+    print('开始进入抢票 %s' % con.pre_start_time)
+    print('正在执行...')
     con.enter_concert()
     # while True: # 可用于无限抢票，防止弹窗类异常使抢票终止
     if True:
